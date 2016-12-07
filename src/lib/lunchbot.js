@@ -1,7 +1,7 @@
 import Julebygda from '../api/julebygda';
 import Bot from 'slackbots';
 
-const CONFIG = require('../config')
+const CONFIG = require('../../config')
 
 const julebygda = new Julebygda(CONFIG.julebygdaUser, CONFIG.julebygdaPassword);
 
