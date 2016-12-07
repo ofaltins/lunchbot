@@ -98,7 +98,8 @@ var Lunchbot = function (_Bot) {
   }, {
     key: '_isAdressingMe',
     value: function _isAdressingMe(message) {
-      return message.text.toLowerCase().split(' ')[0] === this.settings.keyword;
+      var first = message.text.toLowerCase().split(' ')[0];
+      return first === this.settings.keyword || first === this.settings.name;
     }
   }, {
     key: '_isFromMe',
