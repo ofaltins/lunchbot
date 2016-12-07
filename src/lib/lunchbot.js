@@ -242,7 +242,7 @@ class Lunchbot extends Bot {
         public: true,
         doc: 'Denne menyen! Duh!',
         func: () => {
-          let output = 'Her er det jeg kan hjelpe deg med:' + "\n"
+          let output = 'Her er det jeg kan hjelpe deg med:' + "\n\n"
           for (let action in this._actions()) {
             output += '*' + action + "*\n" + this._actions()[action].doc + "\n\n"
           }
