@@ -98,7 +98,7 @@ var Lunchbot = function (_Bot) {
   }, {
     key: '_isAdressingMe',
     value: function _isAdressingMe(message) {
-      return message.text.toLowerCase().split(' ')[0] === this.settings.name;
+      return message.text.toLowerCase().split(' ')[0] === this.settings.keyword;
     }
   }, {
     key: '_isFromMe',
@@ -181,9 +181,9 @@ var Lunchbot = function (_Bot) {
               var output = "Her er det jeg fant:\nVarenummer\t\t\tNavn\t\t\tPris\n";
               if (r.length > 0) {
                 r.forEach(function (item) {
-                  output += item.id + "\t" + item.tittel + "\t" + item.price + "\n";
+                  output += item.id + "\t\t\t" + item.tittel + "\t\t\t" + item.price + "\n";
                 });
-                output += "\nFor å legge til en vare i handlelisten: 'lunchbot husk [varenummer]'";
+                output += "\nFor å legge til en vare i handlelisten: 'lunchbot kjøp [varenummer]'";
               } else {
                 output += 'INGENTING!';
               }

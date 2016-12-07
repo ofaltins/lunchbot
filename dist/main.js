@@ -9,10 +9,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../config');
 var token = CONFIG.slack_token;
 var name = CONFIG.bot_name;
+var keyword = CONFIG.keyword;
 
 var lunchbot = new _lunchbot2.default({
     token: token,
-    name: name
+    name: name,
+    keyword: keyword
 });
 
 lunchbot.run();
