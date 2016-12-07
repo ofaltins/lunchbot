@@ -58,7 +58,8 @@ class Lunchbot extends Bot {
     return typeof message.channel === 'string' && message.channel[0] === 'C'
   }
   _isAdressingMe (message) {
-    return message.text.toLowerCase().split(' ')[0] === (this.settings.keyword)
+    const first = message.text.toLowerCase().split(' ')[0]
+    return first === this.settings.keyword || first === this.settings.name
   }
   _isFromMe (message) {
     return message.user === this.user.id
