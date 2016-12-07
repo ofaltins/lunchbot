@@ -1,0 +1,8 @@
+'use strict';
+
+module.exports = {
+  slackToken: '',
+  julebygdaUser: '',
+  julebygdaPassword: '',
+  defaultAdmin: ''
+};
