@@ -2,15 +2,15 @@ import Julebygda from '../api/julebygda';
 import Bot from 'slackbots';
 
 const CONFIG = require('../../config')
+const username = process.env.julebygda_user || CONFIG.julebygda_user
+const password = process.env.julebygda_password || CONFIG.julebygda_password
 
-const julebygda = new Julebygda(CONFIG.julebygdaUser, CONFIG.julebygdaPassword);
+const julebygda = new Julebygda(username, password);
 
 class Lunchbot extends Bot {
   constructor (settings) {
     super (settings);
     this.settings = settings;
-    this.settings.name = this.settings.name || 'lunchbot'
-    this.settings.admin = this.settings.defaultAdmin || 'ole'
     this.settings.activeChannels = [];
 
     // TODO: set db path
