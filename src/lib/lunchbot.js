@@ -119,7 +119,7 @@ class Lunchbot extends Bot {
             let output = "Her er det jeg fant:\nVarenummer\t\t\tNavn\t\t\tPris\n"
             if (r.length > 0) {
               r.forEach((item) => {
-                output += item.id + "\t" + item.tittel + "\t" + item.price + "\n"
+                output += item.id + "\t\t\t" + item.tittel + "\t\t\t" + item.price + "\n"
               })
             output += "\nFor å legge til en vare i handlelisten: 'lunchbot kjøp [varenummer]'"
             } else {
