@@ -23,8 +23,10 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var CONFIG = require('../../config');
+var username = process.env.julebygda_user || CONFIG.julebygda_user;
+var password = process.env.julebygda_password || CONFIG.julebygda_password;
 
-var julebygda = new _julebygda2.default(CONFIG.julebygdaUser, CONFIG.julebygdaPassword);
+var julebygda = new _julebygda2.default(username, password);
 
 var Lunchbot = function (_Bot) {
   _inherits(Lunchbot, _Bot);
@@ -35,8 +37,6 @@ var Lunchbot = function (_Bot) {
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Lunchbot).call(this, settings));
 
     _this.settings = settings;
-    _this.settings.name = _this.settings.name || 'lunchbot';
-    _this.settings.admin = _this.settings.defaultAdmin || 'ole';
     _this.settings.activeChannels = [];
 
     // TODO: set db path
