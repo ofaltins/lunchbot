@@ -1,14 +1,9 @@
 import Julebygda from '../api/julebygda';
 import Bot from 'slackbots';
 
-if (process.env) {
-  const username = process.env.julebygda_user
-  const password = process.env.julebygda_password
-} else {
-  const CONFIG = require('../../config')
-  const username = process.env.julebygda_user || CONFIG.julebygda_user
-  const password = process.env.julebygda_password || CONFIG.julebygda_password
-}
+const CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../../config')
+const username = CONFIG.julebygda_user
+const password = CONFIG.julebygda_password
 
 const julebygda = new Julebygda(username, password);
 

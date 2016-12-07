@@ -22,14 +22,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-if (process.env) {
-  var _username = process.env.julebygda_user;
-  var _password = process.env.julebygda_password;
-} else {
-  var CONFIG = require('../../config');
-  var _username2 = process.env.julebygda_user || CONFIG.julebygda_user;
-  var _password2 = process.env.julebygda_password || CONFIG.julebygda_password;
-}
+var CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../../config');
+var username = CONFIG.julebygda_user;
+var password = CONFIG.julebygda_password;
 
 var julebygda = new _julebygda2.default(username, password);
 
