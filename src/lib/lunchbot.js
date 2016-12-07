@@ -121,7 +121,7 @@ class Lunchbot extends Bot {
               r.forEach((item) => {
                 output += item.id + "\t" + item.tittel + "\t" + item.price + "\n"
               })
-            output += "\nFor å legge til en vare i handlelisten: 'lunchbot husk [varenummer]'"
+            output += "\nFor å legge til en vare i handlelisten: 'lunchbot kjøp [varenummer]'"
             } else {
               output += 'INGENTING!'
             }
