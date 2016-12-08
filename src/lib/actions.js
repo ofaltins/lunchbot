@@ -115,6 +115,7 @@ class Actions {
       },
       bekreftbestilling: {
         public: true,
+        restricted: true,
         doc: 'For bruk etter at du har brukt sendbestilling. Denne kommandoen effektuerer bestillingen hos julebygda.no',
         func: origin => {
           julebygda.viewBasket()
