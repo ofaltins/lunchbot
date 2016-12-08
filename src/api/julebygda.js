@@ -200,7 +200,8 @@ class Julebygda {
         oppsummering += "\nLeveringsdato: " + $('#datepicker').val()
         oppsummering += "\nGodta erstatningsvare: Ja"
 
-        const formData = $('form[name="form1"]').serializeArray()
+        const formData = $('form[name="form1"]').serializeObject()
+        console.log('FORMDATA', formData)
         resolve({varer, oppsummering, formData})
       }).catch(error => { reject(error) })
     })
