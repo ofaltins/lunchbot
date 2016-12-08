@@ -169,7 +169,7 @@ class Actions {
           this.eventEmitter.emit('addAttendee', {name: origin.username, egg: (egg === 'egg' ? 1 : 0) })
           this.eventEmitter.emit('say', (egg === 'egg' ? ' Eggcellent, ' : 'Herlig, ') + origin.username + '!' )
         }
-      }
+      },
       ping: {
         public: true,
         doc: 'Returnerer lunchbot sin instans ID',
