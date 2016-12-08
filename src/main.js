@@ -1,6 +1,7 @@
 'use strict';
 
-import Lunchbot from './lib/lunchbot';
+//import Lunchbot from './lib/lunchbot';
+const Lunchbot = require('./lib/lunchbot')
 
 const CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../config')
 const token = CONFIG.slack_token

@@ -1,6 +1,10 @@
-import Bot from 'slackbots';
-import Actions from './actions'
-import Events from 'events'
+'use strict';
+const Bot = require('slackbots')
+const Actions = require('./actions')
+const Events = require('events')
+// import Bot from 'slackbots';
+// import Actions from './actions'
+// import Events from 'events'
 
 class EventEmitter extends Events {}
 const eventEmitter = new EventEmitter()
@@ -134,4 +138,4 @@ class Lunchbot extends Bot {
   }
 }
 
-export default Lunchbot;
+module.exports = Lunchbot;

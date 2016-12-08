@@ -1,4 +1,5 @@
-import Julebygda from '../api/julebygda';
+'use strict';
+const Julebygda = require('../api/julebygda');
 const CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../../config')
 const username = CONFIG.julebygda_user
 const password = CONFIG.julebygda_password
@@ -170,4 +171,4 @@ class Actions {
   }
 }
 
-export default Actions
+module.exports = Actions
