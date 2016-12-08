@@ -11,9 +11,11 @@ class Lunchbot extends Bot {
   constructor (settings) {
     super (settings);
 
-    ACTIONS.setState(settings)
     this.settings = settings;
     this.settings.activeChannels = [];
+    this.settings.bot_id = (process.env.NODE_ENV === 'production' ? 'production' : 'dev' )+ '' + Date.now()
+
+    ACTIONS.setState(this.settings)
 
     eventEmitter.on('say', (payload, origin) => {
       console.log('got event', payload, origin)

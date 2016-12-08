@@ -147,6 +147,13 @@ class Actions {
           this.eventEmitter.emit('say', 'Ny sjef er ' + user, origin)
         }
       },
+      ping: {
+        public: true,
+        doc: 'Returnerer lunchbot sin instans ID',
+        func: origin => {
+          this.eventEmitter.emit('say', 'Pong! ' + this.state.bot_id, origin)
+        }
+      },
       hjelp: {
         public: true,
         doc: 'Denne menyen! Duh!',
