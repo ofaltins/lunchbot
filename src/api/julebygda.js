@@ -87,6 +87,26 @@ class Julebygda {
     return this._shoppingList
   }
 
+  removeFromShoppingList (items) {
+    console.log('removing from shoppingList', items)
+    let removedItems = 0
+    let shoppingList = this._shoppingList
+    items.forEach(item => {
+        const index = shoppingList.findIndex(el => el.id === item.id)
+        if (index !== undefined) {
+          shoppingList.splice(index, 1)
+          removedItems++
+        }
+    })
+    this.setShoppingList(shoppingList)
+    return this.getShoppingList()
+  }
+
+  setShoppingList (list) {
+    this.shoppingList = list
+    return this._shoppingList
+  }
+
   getShoppingList () {
     return this._shoppingList
   }

@@ -57,6 +57,20 @@ class Actions {
             })
         }
       },
+      ikkekjøp: {
+        public: true,
+        restricted: true,
+        doc: 'Fjern en vare fra handlelisten. F.eks: ikkekjøp 205310.',
+        func: (origin, items) => { // expects space-separated @string with item ids
+          const getItems = items.split(' ').map(item => { return {id: item}})
+          const shoppingList = julebygda.removeFromShoppingList(getItems)
+          let output = "Handlelisten er oppdatert\n"
+          shoppingList.forEach(item => {
+            output += item.id + "\t" + item.tittel + "\t" + item.price + "\n"
+          })
+          this.eventEmitter.emit('say', output, origin)
+        }
+      },
       vishandleliste: {
         public: true,
         doc: 'Viser handlelisten. Alle kan legge til varer i handlelisten, men det er kun lunsjansvarlig som kan fjerne',
