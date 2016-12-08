@@ -46,7 +46,14 @@ class Schedule {
         this.eventEmitter.emit('say', output[Math.floor(Math.random()*output.length)] + ' :knife_fork_plate:')
       },
       announceSetTable: () => {
-        const output = 'Dekk bord Victoria, dekk bord! Eller ' + (this.state.admin === undefined ? 'du' : this.state.admin) + ' da.. '
+        let output = 'Dekk bord Victoria, dekk bord! Eller ' + (this.state.admin === undefined ? 'du' : this.state.admin) + ' da..' + "\n\n"
+        output += 'Følgende folk har sagt de kommer:' + "\n"
+        let eggs = 0
+        this.state.attendees.forEach(attendee => {
+          output += attendee.name + ' - egg: ' + attendee.egg + "\n"
+          eggs += attendee.egg
+        })
+        output += "\n" + 'Totalt antall egg: ' + eggs
         this.eventEmitter.emit('say', output, {username: this.state.admin, channel: 'D'})
       },
       announceLunchOrderAll: () => {

@@ -162,6 +162,14 @@ class Actions {
           this.eventEmitter.emit('say', 'Ny sjef er ' + user, origin)
         }
       },
+      kommer: {
+        public: false,
+        doc: 'På forespørsel fra lunchbot kan du si i fra at du kommer til lunch, og samtidig si ifra om du ønsker egg. F.eks: lunchbot kommer egg',
+        func: (origin, egg) => {
+          this.eventEmitter.emit('addAttendee', {name: origin.username, egg: (egg === 'egg' ? 1 : 0) })
+          this.eventEmitter.emit('say', (egg === 'egg' ? ' Eggcellent, ' : 'Herlig, ') + origin.username + '!' )
+        }
+      }
       ping: {
         public: true,
         doc: 'Returnerer lunchbot sin instans ID',

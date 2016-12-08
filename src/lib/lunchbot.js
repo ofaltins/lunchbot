@@ -19,6 +19,7 @@ class Lunchbot extends Bot {
     this.settings.activeChannels = [];
     this.settings.bot_id = (process.env.NODE_ENV === 'production' ? 'production' : 'dev' )+ '' + Date.now()
     this.settings.active = true
+    this.settings.attendees = []
 
     eventEmitter.emit('setState', this.settings)
 
@@ -46,6 +47,11 @@ class Lunchbot extends Bot {
 
     eventEmitter.on('deactivate', () => {
       this.settings.active = false
+      eventEmitter.emit('setState', this.settings)
+    })
+
+    eventEmitter.on('addAttendee', attendee => {
+      this.settings.attendees.push(attendee)
       eventEmitter.emit('setState', this.settings)
     })
 
@@ -146,6 +152,8 @@ class Lunchbot extends Bot {
     console.log('input', input)
     const command = input.shift()
     const argument = input.join(' ')
+
+    message.username = this._getUserName(message.user)
 
     console.log('command:' + command + ' arg: ' + argument)
 
