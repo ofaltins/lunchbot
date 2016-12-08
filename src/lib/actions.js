@@ -119,10 +119,10 @@ class Actions {
         func: origin => {
           julebygda.viewBasket()
             .then(basket => {
-              return julebygda.confirmOrder(basket.formData)
+              return julebygda.confirmOrder(basket.parsedFormData)
             })
             .then(result => {
-              this.eventEmitter.emit('say', 'Maybe it worked?', origin)
+              this.eventEmitter.emit('say', result, origin)
             })
             .catch(error => {
               console.log('confirmorder error', error)

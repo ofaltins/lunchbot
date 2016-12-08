@@ -1,7 +1,6 @@
 const request = require('request');
 const cheerio = require('cheerio');
 const url = require('url');
-const serialize = require('form-serialize')
 let j = request.jar();
 
 class Julebygda {
@@ -169,12 +168,25 @@ class Julebygda {
   }
 
   confirmOrder (formData) {
-    request.post({url: this._generateUrl('confirmOrder'), jar: j, form: formData}, (err, httpResponse, body) => {
-      if (err) {
-        reject(Error(err))
+    return new Promise((resolve, reject) => {
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'node.js'
       }
-      console.log('confirmOrder httpResponse', httpResponse)
-      console.log('confirmOrder body', body)
+
+      console.log('------------ SENDING CONFIRM ORDER ------------------', headers, formData)
+
+      request.post({url: this._generateUrl('confirmOrder'), jar: j, form: formData, headers: headers}, (err, httpResponse, body) => {
+        if (err) {
+          reject(Error(err))
+        }
+        console.log('confirmOrder httpResponse', httpResponse)
+
+        this._getPage(httpResponse.headers.location)
+          .then(html => console.log('----------------------- ERROR KASSE? ---------------', html))
+          
+        resolve('Julebygda sier: ' + httpResponse.headers.location)
+      })
     })
   }
 
@@ -201,9 +213,15 @@ class Julebygda {
         oppsummering += "\nLeveringsdato: " + $('#datepicker').val()
         oppsummering += "\nGodta erstatningsvare: Ja"
 
-        const formData = serialize($('form[name="form1"]').html())
-        console.log('FORMDATA', formData)
-        resolve({varer, oppsummering, formData})
+        const formData = $('form[name="form1"]').serializeArray()
+        let parsedFormData = {}
+
+        formData.forEach(el => {
+          parsedFormData[el.name] = el.value
+        })
+        parsedFormData['checkbox'] = '1'
+
+        resolve({varer, oppsummering, parsedFormData})
       }).catch(error => { reject(error) })
     })
   }
