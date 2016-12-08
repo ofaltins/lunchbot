@@ -2,12 +2,14 @@
 
 const Bot = require('slackbots')
 const Actions = require('./actions')
+const Schedule = require('./schedule')
 const Events = require('events')
 
 class EventEmitter extends Events {}
 const eventEmitter = new EventEmitter()
 
 const ACTIONS = new Actions(eventEmitter)
+const SCHEDULE = new Schedule(eventEmitter)
 
 class Lunchbot extends Bot {
   constructor (settings) {
@@ -18,11 +20,12 @@ class Lunchbot extends Bot {
     this.settings.bot_id = (process.env.NODE_ENV === 'production' ? 'production' : 'dev' )+ '' + Date.now()
     this.settings.active = true
 
-    ACTIONS.setState(this.settings)
+    eventEmitter.emit('setState', this.settings)
 
     eventEmitter.on('say', (payload, origin) => {
       console.log('got event', payload, origin)
-      if (this._isChannelConversation(origin)) {
+
+      if (origin === undefined || this._isChannelConversation(origin)) {
         this._postMessageToChannel(payload, origin)
       } else if (this._isDirectMessage(origin)) {
         this._postMessageToUser(payload, origin)
@@ -33,17 +36,21 @@ class Lunchbot extends Bot {
 
     eventEmitter.on('setadmin', user => {
       this.settings.admin = user
-      ACTIONS.setState(this.settings)
+      eventEmitter.emit('setState', this.settings)
     })
 
     eventEmitter.on('activate', () => {
       this.settings.active = true
-      ACTIONS.setState(this.settings)
+      eventEmitter.emit('setState', this.settings)
     })
 
     eventEmitter.on('deactivate', () => {
       this.settings.active = false
-      ACTIONS.setState(this.settings)
+      eventEmitter.emit('setState', this.settings)
+    })
+
+    eventEmitter.on('dryRunSchedule', () => {
+      SCHEDULE.actions()['dryRunSchedule']()
     })
   }
 
@@ -112,7 +119,7 @@ class Lunchbot extends Bot {
   }
   _getUserName (userId) {
     const user = this.users.filter(u => u.id === userId)[0]
-    return user === undefined ? false : user.name
+    return user === undefined ? undefined : user.name
   }
   _isFromAdmin (message) {
     const username = this._getUserName(message.user)
@@ -127,7 +134,10 @@ class Lunchbot extends Bot {
     return this.postTo(channel, message, {as_user: true})
   }
   _postMessageToUser (message, origin) {
-    const username = this._getUserName(origin.user)
+    let username = this._getUserName(origin.user)
+    if (username === undefined) {
+      username = origin.username
+    }
     return this.postMessageToUser(username, message)
   }
   _parseCommand(message) {

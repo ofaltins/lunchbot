@@ -8,11 +8,9 @@ const julebygda = new Julebygda(username, password);
 
 class Actions {
   constructor (emitter) {
-    this.eventEmitter = emitter
     this.state = {}
-  }
-  setState (state) {
-    this.state = state
+    this.eventEmitter = emitter
+    this.eventEmitter.on('setState', state => { this.state = state })
   }
   actions() {
     return {
@@ -168,7 +166,7 @@ class Actions {
         public: true,
         doc: 'Returnerer lunchbot sin instans ID',
         func: origin => {
-          this.eventEmitter.emit('say', 'Pong! ' + this.state.bot_id, origin)
+          this.eventEmitter.emit('say', 'Pong! ' + this.state.bot_id + ' - Status: ' + (this.state.active === true ? 'aktiv' : inaktiv), origin)
         }
       },
       aktiver: {
@@ -193,13 +191,23 @@ class Actions {
           }
         }
       },
+      dryrun: {
+        public: false,
+        restricted: true,
+        doc: 'Kjører gjennom alle planlagte announcements',
+        func: origin => {
+          this.eventEmitter.emit('dryRunSchedule')
+        }
+      },
       hjelp: {
         public: true,
         doc: 'Denne menyen! Duh!',
         func: origin => {
           let output = 'Her er det jeg kan hjelpe deg med:' + "\n\n"
           for (let action in this.actions()) {
-            output += '*' + action + "*\n" + this.actions()[action].doc + "\n\n"
+            if (this.actions()[action].public === true) {
+              output += '*' + action + "*\n" + this.actions()[action].doc + "\n\n"
+            }
           }
           this.eventEmitter.emit('say', output, origin)
         }
