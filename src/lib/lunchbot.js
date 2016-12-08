@@ -1,10 +1,8 @@
 'use strict';
+
 const Bot = require('slackbots')
 const Actions = require('./actions')
 const Events = require('events')
-// import Bot from 'slackbots';
-// import Actions from './actions'
-// import Events from 'events'
 
 class EventEmitter extends Events {}
 const eventEmitter = new EventEmitter()
@@ -127,10 +125,10 @@ class Lunchbot extends Bot {
       if ((action.restricted === true && this._isFromAdmin(message)) || action.restricted !== true) {
         action.func(message, argument)
       } else {
-        this._postMessageToChannel('Du har ikke tilgang til denne funksjonen.')
+        this._postMessageToChannel('Du har ikke tilgang til denne funksjonen.', message)
       }
     } else {
-      this._postMessageToChannel('Øyh! Det skjønte jeg ikke bæret av. Si noe jeg forstår da? For å se alt du kan spørre meg om, skriv lunchbot hjelp')
+      this._postMessageToChannel('Øyh! Det skjønte jeg ikke bæret av. Si noe jeg forstår da? For å se alt du kan spørre meg om, skriv lunchbot hjelp', message)
     }
   }
   _actions() {

@@ -1,6 +1,6 @@
 {
   "name": "lunchbot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Sassy lunch butler who puts food on your table and jokes on your screen.",
   "main": "dist/main.js",
   "scripts": {
