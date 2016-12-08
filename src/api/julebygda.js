@@ -1,6 +1,7 @@
 const request = require('request');
 const cheerio = require('cheerio');
 const url = require('url');
+const serialize = require('form-serialize')
 let j = request.jar();
 
 class Julebygda {
@@ -200,7 +201,7 @@ class Julebygda {
         oppsummering += "\nLeveringsdato: " + $('#datepicker').val()
         oppsummering += "\nGodta erstatningsvare: Ja"
 
-        const formData = $('form[name="form1"]').serializeObject()
+        const formData = serialize($('form[name="form1"]').html())
         console.log('FORMDATA', formData)
         resolve({varer, oppsummering, formData})
       }).catch(error => { reject(error) })
