@@ -201,21 +201,37 @@ var Julebygda = function () {
   }, {
     key: 'confirmOrder',
     value: function confirmOrder(formData) {
-      request.post({ url: this._generateUrl('confirmOrder'), jar: j, form: formData }, function (err, httpResponse, body) {
-        if (err) {
-          reject(Error(err));
-        }
-        console.log('confirmOrder httpResponse', httpResponse);
-        console.log('confirmOrder body', body);
+      var _this7 = this;
+
+      return new Promise(function (resolve, reject) {
+        var headers = {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'node.js'
+        };
+
+        console.log('------------ SENDING CONFIRM ORDER ------------------', headers, formData);
+
+        request.post({ url: _this7._generateUrl('confirmOrder'), jar: j, form: formData, headers: headers }, function (err, httpResponse, body) {
+          if (err) {
+            reject(Error(err));
+          }
+          console.log('confirmOrder httpResponse', httpResponse);
+
+          _this7._getPage(httpResponse.headers.location).then(function (html) {
+            return console.log('----------------------- ERROR KASSE? ---------------', html);
+          });
+
+          resolve('Julebygda sier: ' + httpResponse.headers.location);
+        });
       });
     }
   }, {
     key: 'viewBasket',
     value: function viewBasket() {
-      var _this7 = this;
+      var _this8 = this;
 
       return new Promise(function (resolve, reject) {
-        _this7._getPage('cart').then(function (html) {
+        _this8._getPage('cart').then(function (html) {
           var $ = cheerio.load(html);
           var varer = [];
           var oppsummering = '';
@@ -237,7 +253,14 @@ var Julebygda = function () {
           oppsummering += "\nGodta erstatningsvare: Ja";
 
           var formData = $('form[name="form1"]').serializeArray();
-          resolve({ varer: varer, oppsummering: oppsummering, formData: formData });
+          var parsedFormData = {};
+
+          formData.forEach(function (el) {
+            parsedFormData[el.name] = el.value;
+          });
+          parsedFormData['checkbox'] = '1';
+
+          resolve({ varer: varer, oppsummering: oppsummering, parsedFormData: parsedFormData });
         }).catch(function (error) {
           reject(error);
         });

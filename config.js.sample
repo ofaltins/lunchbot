@@ -4,6 +4,7 @@ module.exports = {
   slack_token: '',
   bot_name: '',
   keyword: '',
+  primary_channel: '',
   julebygda_user: '',
   julebygda_password: '',
   default_admin: ''

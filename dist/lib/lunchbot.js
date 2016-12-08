@@ -6,13 +6,17 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _julebygda = require('../api/julebygda');
-
-var _julebygda2 = _interopRequireDefault(_julebygda);
-
 var _slackbots = require('slackbots');
 
 var _slackbots2 = _interopRequireDefault(_slackbots);
+
+var _actions2 = require('./actions');
+
+var _actions3 = _interopRequireDefault(_actions2);
+
+var _events = require('events');
+
+var _events2 = _interopRequireDefault(_events);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -22,11 +26,21 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../../config');
-var username = CONFIG.julebygda_user;
-var password = CONFIG.julebygda_password;
+var EventEmitter = function (_Events) {
+  _inherits(EventEmitter, _Events);
 
-var julebygda = new _julebygda2.default(username, password);
+  function EventEmitter() {
+    _classCallCheck(this, EventEmitter);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(EventEmitter).apply(this, arguments));
+  }
+
+  return EventEmitter;
+}(_events2.default);
+
+var eventEmitter = new EventEmitter();
+
+var ACTIONS = new _actions3.default(eventEmitter);
 
 var Lunchbot = function (_Bot) {
   _inherits(Lunchbot, _Bot);
@@ -34,13 +48,30 @@ var Lunchbot = function (_Bot) {
   function Lunchbot(settings) {
     _classCallCheck(this, Lunchbot);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Lunchbot).call(this, settings));
+    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(Lunchbot).call(this, settings));
 
-    _this.settings = settings;
-    _this.settings.activeChannels = [];
+    _this2.settings = settings;
+    _this2.settings.activeChannels = [];
+    _this2.settings.bot_id = (process.env.NODE_ENV === 'production' ? 'production' : 'dev') + '' + Date.now();
 
-    // TODO: set db path
-    return _this;
+    ACTIONS.setState(_this2.settings);
+
+    eventEmitter.on('say', function (payload, origin) {
+      console.log('got event', payload, origin);
+      if (_this2._isChannelConversation(origin)) {
+        _this2._postMessageToChannel(payload, origin);
+      } else if (_this2._isDirectMessage(origin)) {
+        _this2._postMessageToUser(payload, origin);
+      } else {
+        console.log('Payload without target: ', payload, origin);
+      }
+    });
+
+    eventEmitter.on('setadmin', function (user) {
+      _this2.settings.admin = user;
+      ACTIONS.setState(_this2.settings);
+    });
+    return _this2;
   }
 
   _createClass(Lunchbot, [{
@@ -52,7 +83,7 @@ var Lunchbot = function (_Bot) {
   }, {
     key: '_onStart',
     value: function _onStart() {
-      var _this2 = this;
+      var _this3 = this;
 
       this._loadBotUser();
       this._welcomeMessage();
@@ -60,14 +91,14 @@ var Lunchbot = function (_Bot) {
       this.channels.filter(function (channel) {
         return channel.is_member;
       }).forEach(function (channel) {
-        _this2.settings.activeChannels.push(channel.name);
+        _this3.settings.activeChannels.push(channel.name);
         console.log('bot is in: ' + channel.name);
       });
     }
   }, {
     key: '_onMessage',
     value: function _onMessage(message) {
-      if (this._isChatMessage(message) && this._isChannelConversation(message) && !this._isFromMe(message) && this._isAdressingMe(message)) {
+      if (this._isChatMessage(message) && !this._isFromMe(message) && this._isAdressingMe(message)) {
         console.log('got message: ', message.text);
         this._parseCommand(message);
       }
@@ -93,7 +124,12 @@ var Lunchbot = function (_Bot) {
   }, {
     key: '_isChannelConversation',
     value: function _isChannelConversation(message) {
-      return typeof message.channel === 'string' && message.channel[0] === 'C';
+      return typeof message.channel === 'string' && message.channel[0] === 'C' || message.channel[0] === 'G';
+    }
+  }, {
+    key: '_isDirectMessage',
+    value: function _isDirectMessage(message) {
+      return typeof message.channel === 'string' && message.channel[0] === 'D';
     }
   }, {
     key: '_isAdressingMe',
@@ -129,16 +165,26 @@ var Lunchbot = function (_Bot) {
       return username === this.settings.admin || this._isBotAdmin(message.user) === true;
     }
   }, {
-    key: '_getChannelById',
-    value: function _getChannelById(channelId) {
-      return this.channels.filter(function (item) {
+    key: '_getChannelNameById',
+    value: function _getChannelNameById(channelId) {
+      var channel = this.channels.filter(function (item) {
+        return item.id === channelId;
+      })[0] || this.groups.filter(function (item) {
         return item.id === channelId;
       })[0];
+      return channel === undefined ? false : channel.name;
     }
   }, {
     key: '_postMessageToChannel',
-    value: function _postMessageToChannel(message) {
-      return this.postMessageToChannel('lunch', message, { as_user: true });
+    value: function _postMessageToChannel(message, origin) {
+      var channel = origin === undefined ? this.settings.primary_channel : this._getChannelNameById(origin.channel);
+      return this.postTo(channel, message, { as_user: true });
+    }
+  }, {
+    key: '_postMessageToUser',
+    value: function _postMessageToUser(message, origin) {
+      var username = this._getUserName(origin.user);
+      return this.postMessageToUser(username, message);
     }
   }, {
     key: '_parseCommand',
@@ -152,9 +198,13 @@ var Lunchbot = function (_Bot) {
       console.log('command:' + command + ' arg: ' + argument);
 
       // if command matches a function name in the _actions method, run it and pass one argument
-      var action = this._actions()[command];
+      var action = ACTIONS.actions()[command];
       if (action !== undefined) {
-        action.func(argument, message);
+        if (action.restricted === true && this._isFromAdmin(message) || action.restricted !== true) {
+          action.func(message, argument);
+        } else {
+          this._postMessageToChannel('Du har ikke tilgang til denne funksjonen.');
+        }
       } else {
         this._postMessageToChannel('Øyh! Det skjønte jeg ikke bæret av. Si noe jeg forstår da? For å se alt du kan spørre meg om, skriv lunchbot hjelp');
       }
@@ -162,154 +212,7 @@ var Lunchbot = function (_Bot) {
   }, {
     key: '_actions',
     value: function _actions() {
-      var _this3 = this;
-
-      var self = this;
-      return {
-        finn: {
-          public: true,
-          doc: 'Hjelper deg med å finne de rette varene, og å legge varene inn i handlelisten.',
-          func: function func(term) {
-            // expects @string
-            self._postMessageToChannel('Søker - vent litt!');
-            julebygda.search(term).then(function (results) {
-              if (results.length > 19) {
-                self._postMessageToChannel('Oi der fant jeg mange varer. Kanskje du skal prøve å søke mer spesifikt? Jeg kommer tilbake med de første 20 resultatene straks.');
-                results = results.slice(0, 19);
-              }
-              return julebygda.getProductData(results);
-            }).then(function (r) {
-              var output = "Her er det jeg fant:\nVarenummer\t\t\tNavn\t\t\tPris\n";
-              if (r.length > 0) {
-                r.forEach(function (item) {
-                  output += item.id + "\t\t\t" + item.tittel + "\t\t\t" + item.price + "\n";
-                });
-                output += "\nFor å legge til en vare i handlelisten: 'lunchbot kjøp [varenummer]'";
-              } else {
-                output += 'INGENTING!';
-              }
-              self._postMessageToChannel(output);
-            });
-          }
-        },
-        kjøp: {
-          public: true,
-          doc: 'Når du har funnet en vare vha. finn-kommandoen, kan du bruke kjøp for å velge hvilken vare fra søkeresultatet som skal legges i handlelisten. Du kan legge inn flere varenummer på en gang. F.eks: lunchbot kjøp 205310 116744 108656',
-          func: function func(items) {
-            // expects space-separated @string with item ids
-            var getItems = items.split(' ').map(function (item) {
-              return { id: item };
-            });
-            julebygda.getProductData(getItems).then(function (productData) {
-              var shoppingList = julebygda.addToShoppingList(productData);
-              var output = "Handlelisten er oppdatert\n";
-              shoppingList.forEach(function (item) {
-                output += item.id + "\t" + item.tittel + "\t" + item.price + "\n";
-              });
-              self._postMessageToChannel(output);
-            });
-          }
-        },
-        vishandleliste: {
-          public: true,
-          doc: 'Viser handlelisten. Alle kan legge til varer i handlelisten, men det er kun lunsjansvarlig som kan fjerne',
-          func: function func() {
-            var shoppingList = julebygda.getShoppingList();
-            var output = shoppingList.length > 0 ? "Her er handlelisten\n" : "Handlelisten er tom!";
-            shoppingList.forEach(function (item) {
-              output += item.id + "\t" + item.tittel + "\t" + item.price + "\n";
-            });
-            self._postMessageToChannel(output);
-          }
-        },
-        nyhandleliste: {
-          public: true,
-          doc: 'Kaster den gamle handlelisten, og lager en ny blank handleliste',
-          func: function func() {
-            julebygda.clearShoppingList();
-            self._postMessageToChannel('Handlelisten er tømt');
-          }
-        },
-        vishandlekurv: {
-          public: false,
-          doc: 'Viser det som er lagret i sesjonen hos julebygda.no.',
-          func: function func() {
-            julebygda.viewBasket().then(function (basket) {
-              var output = "Dette ligger nå i handlekurven\n";
-              basket.varer.forEach(function (item) {
-                output += item + "\n";
-              });
-              output += "\n" + basket.oppsummering;
-              self._postMessageToChannel(output);
-            });
-          }
-        },
-        sendbestilling: {
-          public: true,
-          doc: 'Lager en ny ordre hos julebygda.no med alt som ligger i handlelisten, og viser ordresammendrag før du kan bekrefte bestilling',
-          func: function func() {
-            julebygda.addToCart(julebygda.getShoppingList()).then(function (response) {
-              // self._postMessageToChannel(response)
-              return julebygda.viewBasket();
-            }).then(function (basket) {
-              var output = "Dette ligger nå i handlekurven\n";
-              basket.varer.forEach(function (item) {
-                output += item.tittel + "\t" + item.price + "\t" + item.amount + "\t" + item.subtotal + "\n";
-              });
-              output += "\n" + basket.oppsummering;
-              output += "\n\nBekreft bestilling med 'lunchbot bekreftbestilling'";
-              self._postMessageToChannel(output);
-              // send order here
-            }).catch(function (error) {
-              self._postMessageToChannel(error);
-            });
-          }
-        },
-        bekreftbestilling: {
-          public: true,
-          doc: 'For bruk etter at du har brukt sendbestilling. Denne kommandoen effektuerer bestillingen hos julebygda.no',
-          func: function func() {
-            julebygda.viewBasket().then(function (basket) {
-              return julebygda.confirmOrder(basket.formData);
-            }).then(function (result) {
-              self._postMessageToChannel('Maybe it worked?');
-            }).catch(function (error) {
-              console.log('confirmorder error', error);
-              self._postMessageToChannel(error);
-            });
-          }
-        },
-        hvemersjef: {
-          public: true,
-          doc: 'Forteller hvem som har lunchansvar (og dermed min gud) denne uken',
-          func: function func() {
-            self._postMessageToChannel(_this3.settings.admin + ' er så sykt sjef');
-          }
-        },
-        nysjef: {
-          public: true,
-          doc: 'O lunch med din glede! Sett en ny lunchansvarlig slik: nysjef navn-på-stakkars-jævel',
-          func: function func(user, message) {
-            if (_this3._isFromAdmin(message)) {
-              _this3.settings.admin = user;
-              self._postMessageToChannel('Ny sjef er ' + user);
-            } else {
-              self._postMessageToChannel('Kun en sjef kan bestemme ny sjef!');
-            }
-          }
-        },
-        hjelp: {
-          public: true,
-          doc: 'Denne menyen! Duh!',
-          func: function func() {
-            var output = 'Her er det jeg kan hjelpe deg med:' + "\n\n";
-            for (var action in _this3._actions()) {
-              output += '*' + action + "*\n" + _this3._actions()[action].doc + "\n\n";
-            }
-            self._postMessageToChannel(output);
-          }
-        }
-      };
+      return new _actions3.default();
     }
   }]);
 
