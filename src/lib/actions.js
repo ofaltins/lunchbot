@@ -171,6 +171,28 @@ class Actions {
           this.eventEmitter.emit('say', 'Pong! ' + this.state.bot_id, origin)
         }
       },
+      aktiver: {
+        public: false,
+        restricted: true,
+        doc: 'Aktiver lunchbot. Bruk lunchbot ping for å finne instans',
+        func: (origin, id) => {
+          if (id === this.state.bot_id) {
+            this.eventEmitter.emit('activate')
+            this.eventEmitter.emit('say', this.state.bot_id + ' til tjeneste!', origin)
+          }
+        }
+      },
+      deaktiver: {
+        public: false,
+        restricted: true,
+        doc: 'Deaktiver lunchbot. Bruk lunchbot ping for å finne instans',
+        func: (origin, id) => {
+          if (id === this.state.bot_id) {
+            this.eventEmitter.emit('deactivate')
+            this.eventEmitter.emit('say', this.state.bot_id + ' trer av.', origin)
+          }
+        }
+      },
       hjelp: {
         public: true,
         doc: 'Denne menyen! Duh!',

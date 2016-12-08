@@ -16,6 +16,7 @@ class Lunchbot extends Bot {
     this.settings = settings;
     this.settings.activeChannels = [];
     this.settings.bot_id = (process.env.NODE_ENV === 'production' ? 'production' : 'dev' )+ '' + Date.now()
+    this.settings.active = true
 
     ACTIONS.setState(this.settings)
 
@@ -34,12 +35,21 @@ class Lunchbot extends Bot {
       this.settings.admin = user
       ACTIONS.setState(this.settings)
     })
+
+    eventEmitter.on('activate', () => {
+      this.settings.active = true
+      ACTIONS.setState(this.settings)
+    })
+
+    eventEmitter.on('deactivate', () => {
+      this.settings.active = false
+      ACTIONS.setState(this.settings)
+    })
   }
 
   run () {
     this.on('start', this._onStart)
     this.on('message', this._onMessage)
-
   }
   _onStart () {
     this._loadBotUser()
@@ -56,6 +66,7 @@ class Lunchbot extends Bot {
     if (this._isChatMessage(message)
         && !this._isFromMe(message)
         && this._isAdressingMe(message)
+        && (this._botIsActive() || this._isAnswerAlways(message))
     ) {
         console.log('got message: ', message.text)
         this._parseCommand(message)
@@ -69,6 +80,15 @@ class Lunchbot extends Bot {
     this.user = this.users.filter((user) => {
       return user.name === self.name
     })[0];
+  }
+  _botIsActive () {
+    return this.settings.active
+  }
+  _isAnswerAlways (message) {
+    const msg = message.text.toLowerCase()
+    return msg.indexOf('ping') !== -1
+      || msg.indexOf('aktiver') !== -1
+      || msg.indexOf('deaktiver') !== -1
   }
   _isChatMessage (message) {
     return message.type === 'message' && Boolean(message.text)
