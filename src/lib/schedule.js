@@ -8,29 +8,33 @@ class Schedule {
     this.eventEmitter.on('setState', state => { this.state = state })
     this.eventEmitter.on('dryRunSchedule', () => { this.trigger('dryRunSchedule') })
     this.schedule = {
-      announceAttendees: '0 30 10 * * 1-5',
-      announceLunch: '0 30 11 * * 1-5',
-      announceSetTable: '0 0 11 * * 1-5',
-      announceLunchOrderAll: '0 10 12 * * 1-5',
-      announceLunchOrderMaster: '0 15 14 * * 1-5'
+      announceAttendees: '0 30 10 * * *', // 1-5 for weekdays
+      announceLunch: '0 30 11 * * *', // 1-5 for weekdays
+      announceSetTable: '0 0 11 * * *', // 1-5 for weekdays
+      announceLunchOrderAll: '0 10 12 * * *', // 1-5 for weekdays
+      announceLunchOrderMaster: '0 15 14 * * *' // 1-5 for weekdays
     }
 
-    // TODO: add cron jobs to array for stop/pause functionality
+    let scheduledTasks = []
 
     for (let action in this.schedule) {
-      cron.schedule(this.schedule[action], this.trigger(action))
+      console.log(this.schedule[action])
+      const task = cron.schedule(this.schedule[action], () => { this.trigger(action) } )
+      scheduledTasks.push(task)
+    }
+
+    this.trigger = action => {
+      if (this.state.active === true) {
+        this.actions()[action]()
+      }
     }
   }
-  trigger (action) {
-    if (this.state.active === true) {
-      this.actions()[action]
-    }
-  }
+
   actions () {
     return {
       announceAttendees: () => {
         const output = 'Ahoy! Nå nærmer det seg dagens mest givende halvtime! Kommer du til lunch? Og vil du i så fall ha egg? Skriv "lunchbot kommer egg" hvis du stiller OG vil ha egg. Hvis du ikke vil ha egg skriver du bare "lunchbot kommer"'
-        this.eventEmitter.emit('say', announceAttendees)
+        this.eventEmitter.emit('say', output)
       },
       announceLunch: () => {
         const output = [
