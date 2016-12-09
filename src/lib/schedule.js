@@ -15,6 +15,8 @@ class Schedule {
       announceLunchOrderMaster: '0 15 14 * * 1-5'
     }
 
+    // TODO: add cron jobs to array for stop/pause functionality
+
     for (let action in this.schedule) {
       cron.schedule(this.schedule[action], this.trigger(action))
     }

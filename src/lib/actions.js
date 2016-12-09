@@ -91,7 +91,7 @@ class Actions {
         }
       },
       vishandlekurv: {
-        public: false,
+        public: true,
         doc: 'Viser det som er lagret i sesjonen hos julebygda.no.',
         func: origin => {
           julebygda.viewBasket()
@@ -177,7 +177,7 @@ class Actions {
         }
       },
       kommer: {
-        public: false,
+        public: true,
         doc: 'På forespørsel fra lunchbot kan du si i fra at du kommer til lunch, og samtidig si ifra om du ønsker egg. F.eks: lunchbot kommer egg',
         func: (origin, egg) => {
           this.eventEmitter.emit('addAttendee', {name: origin.username, egg: (egg === 'egg' ? 1 : 0) })
@@ -192,7 +192,7 @@ class Actions {
         }
       },
       aktiver: {
-        public: false,
+        public: true,
         restricted: true,
         doc: 'Aktiver lunchbot. Bruk lunchbot ping for å finne instans',
         func: (origin, id) => {
@@ -203,7 +203,7 @@ class Actions {
         }
       },
       deaktiver: {
-        public: false,
+        public: true,
         restricted: true,
         doc: 'Deaktiver lunchbot. Bruk lunchbot ping for å finne instans',
         func: (origin, id) => {
@@ -214,7 +214,7 @@ class Actions {
         }
       },
       dryrun: {
-        public: false,
+        public: true,
         restricted: true,
         doc: 'Kjører gjennom alle planlagte announcements',
         func: origin => {
