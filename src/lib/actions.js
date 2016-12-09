@@ -174,6 +174,7 @@ class Actions {
         func: (origin, user) => {
           this.eventEmitter.emit('setadmin', user)
           this.eventEmitter.emit('say', 'Ny sjef er ' + user, origin)
+          this.eventEmitter.emit('say', 'Hei din stakkars jævel! Du er med dette utpekt som min bestyrer. Bruk "lb hjelp" for full liste over kommandoer.', {username: user, channel: 'D'})
         }
       },
       kommer: {
