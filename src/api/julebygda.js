@@ -15,6 +15,7 @@ class Julebygda {
       this._password = password;
 
       this._urls = {
+          raw: 'http://www.julebygda.no/',
           base: 'http://www.julebygda.no/index.cfm?tmpl=',
           login: 'butikk/incl_login2',
           addToCart: 'butikk/basket',
@@ -205,8 +206,39 @@ class Julebygda {
 
         this._getPage(httpResponse.headers.location)
           .then(html => console.log('----------------------- ERROR KASSE? ---------------', html))
-          
-        resolve('Julebygda sier: ' + httpResponse.headers.location)
+        
+        if (httpResponse.headers.location.indexOf('ordercomplete') !== -1) {
+          this.clearShoppinglist()
+          this.clearBasket()
+          resolve('Bestilling er bekreftet!')
+        } else {
+          reject('Noe gikk galt. Sjekk loggene mine. Response location: ' + httpResponse.headers.location)
+        }
+      })
+    })
+  }
+
+  clearBasket () {
+    return new Promise((resolve, reject) => {
+      this._getPage('viewBasket').then(html => {
+        const $ = cheerio.load(html)
+        const queries = $('img[src="bilder_losning/slett.gif"]')
+                .toArray()
+                .map(el => {
+                  const href = el.parent.attribs.href
+                  return href.substring(href.indexOf('&'))
+                })
+
+        const promises = queries.map(el => { return this._getPage('addToCart', el)})
+
+        Promise.all(promises)
+          .then(responses => {
+            resolve('Removed ' + reponses.length + ' from cart')
+          })
+          .catch(error => {
+            reject('Unable to remove elements from cart', error)
+          })
+
       })
     })
   }
@@ -214,7 +246,7 @@ class Julebygda {
   viewBasket () {
     return new Promise((resolve, reject) => {
       this._getPage('cart').then(html => {
-        const $ = cheerio.load(html);
+        const $ = cheerio.load(html)
         let varer = []
         let oppsummering = ''
 

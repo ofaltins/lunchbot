@@ -105,6 +105,20 @@ class Actions {
             })
         }
       },
+      nyhandlekurv: {
+        public: true,
+        doc: 'Tømmer handlekurven hos Julebygda',
+        func: origin => {
+          julebygda.clearBasket().then(response => {
+            this.eventEmitter.emit('say', response, origin)
+            console.log('clearbasket response', response)
+          })
+          .catch(error => {
+            this.eventEmitter.emit('say', 'Feil? ' + error, origin)
+            console.log(error)
+          })
+        }
+      },
       sendbestilling: {
         public: true,
         doc: 'Lager en ny ordre hos julebygda.no med alt som ligger i handlelisten, og viser ordresammendrag før du kan bekrefte bestilling',
