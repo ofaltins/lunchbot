@@ -1,16 +1,13 @@
 'use strict';
 
 const Julebygda = require('../api/julebygda');
-const CONFIG = process.env.NODE_ENV === 'production' ? process.env : require('../../config')
-const username = CONFIG.julebygda_user
-const password = CONFIG.julebygda_password
-const julebygda = new Julebygda(username, password);
 
 class Actions {
-  constructor (emitter) {
+  constructor (settings, emitter) {
+    this.julebygda = new Julebygda(settings.julebygda_user, settings.julebygda_password);
     this.state = {}
     this.eventEmitter = emitter
-    this.eventEmitter.on('setState', state => { this.state = state })
+    this.eventEmitter.on('setState', state => { this.state = state }) 
   }
   actions() {
     return {
@@ -19,12 +16,12 @@ class Actions {
         doc: 'Hjelper deg med å finne de rette varene, og å legge varene inn i handlelisten.',
         func: (origin, term) => { // expects @string
           this.eventEmitter.emit('say', 'Søker - vent litt!', origin)
-          julebygda.search(term).then(results => {
+          this.julebygda.search(term).then(results => {
             if (results.length > 19) {
               this.eventEmitter.emit('say', 'Oi der fant jeg mange varer. Kanskje du skal prøve å søke mer spesifikt? Jeg kommer tilbake med de første 20 resultatene straks.', origin)
               results = results.slice(0,19)
             }
-            return julebygda.getProductData(results)
+            return this.julebygda.getProductData(results)
           })
           .then(r => {
             let output = "Her er det jeg fant:\nVarenummer\t\t\tNavn\t\t\tPris\n"
@@ -45,9 +42,9 @@ class Actions {
         doc: 'Når du har funnet en vare vha. finn-kommandoen, kan du bruke kjøp for å velge hvilken vare fra søkeresultatet som skal legges i handlelisten. Du kan legge inn flere varenummer på en gang. F.eks: lunchbot kjøp 205310 116744 108656',
         func: (origin, items) => { // expects space-separated @string with item ids
           const getItems = items.split(' ').map(item => { return {id: item}})
-          julebygda.getProductData(getItems)
+          this.julebygda.getProductData(getItems)
             .then(productData => {
-              const shoppingList = julebygda.addToShoppingList(productData)
+              const shoppingList = this.julebygda.addToShoppingList(productData)
               let output = "Handlelisten er oppdatert\n"
               shoppingList.forEach(item => {
                 output += item.id + "\t" + item.tittel + "\t" + item.price + "\n"
@@ -62,7 +59,7 @@ class Actions {
         doc: 'Fjern en vare fra handlelisten. F.eks: ikkekjøp 205310.',
         func: (origin, items) => { // expects space-separated @string with item ids
           const getItems = items.split(' ').map(item => { return {id: item}})
-          const shoppingList = julebygda.removeFromShoppingList(getItems)
+          const shoppingList = this.julebygda.removeFromShoppingList(getItems)
           let output = "Handlelisten er oppdatert\n"
           shoppingList.forEach(item => {
             output += item.id + "\t" + item.tittel + "\t" + item.price + "\n"
@@ -74,7 +71,7 @@ class Actions {
         public: true,
         doc: 'Viser handlelisten. Alle kan legge til varer i handlelisten, men det er kun lunsjansvarlig som kan fjerne',
         func: origin => {
-          const shoppingList = julebygda.getShoppingList()
+          const shoppingList = this.julebygda.getShoppingList()
           let output = shoppingList.length > 0 ? "Her er handlelisten\n" : "Handlelisten er tom!"
           shoppingList.forEach(item => {
             output += item.id + "\t" + item.tittel + "\t" + item.price + "\n"
@@ -86,7 +83,7 @@ class Actions {
         public: true,
         doc: 'Kaster den gamle handlelisten, og lager en ny blank handleliste',
         func: origin => {
-          julebygda.clearShoppingList()
+          this.julebygda.clearShoppingList()
           this.eventEmitter.emit('say', 'Handlelisten er tømt', origin)
         }
       },
@@ -94,7 +91,7 @@ class Actions {
         public: true,
         doc: 'Viser det som er lagret i sesjonen hos julebygda.no.',
         func: origin => {
-          julebygda.viewBasket()
+          this.julebygda.viewBasket()
             .then(basket => {
               let output = "Dette ligger nå i handlekurven\n"
               basket.varer.forEach(item => {
@@ -109,7 +106,7 @@ class Actions {
         public: true,
         doc: 'Tømmer handlekurven hos Julebygda',
         func: origin => {
-          julebygda.clearBasket().then(response => {
+          this.julebygda.clearBasket().then(response => {
             this.eventEmitter.emit('say', response, origin)
             console.log('clearbasket response', response)
           })
@@ -123,10 +120,10 @@ class Actions {
         public: true,
         doc: 'Lager en ny ordre hos julebygda.no med alt som ligger i handlelisten, og viser ordresammendrag før du kan bekrefte bestilling',
         func: origin => {
-          julebygda.addToCart(julebygda.getShoppingList())
+          this.julebygda.addToCart(this.julebygda.getShoppingList())
             .then(response => {
               // this.eventEmitter.emit('say', response)
-              return julebygda.viewBasket()
+              return this.julebygda.viewBasket()
             }).then(basket => {
               let output = "Dette ligger nå i handlekurven\n"
               basket.varer.forEach(item => {
@@ -146,9 +143,9 @@ class Actions {
         restricted: true,
         doc: 'For bruk etter at du har brukt sendbestilling. Denne kommandoen effektuerer bestillingen hos julebygda.no',
         func: origin => {
-          julebygda.viewBasket()
+          this.julebygda.viewBasket()
             .then(basket => {
-              return julebygda.confirmOrder(basket.parsedFormData)
+              return this.julebygda.confirmOrder(basket.parsedFormData)
             })
             .then(result => {
               this.eventEmitter.emit('say', result, origin)

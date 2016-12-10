@@ -14,22 +14,20 @@ class Schedule {
       announceLunchOrderAll: '0 10 12 * * *', // 1-5 for weekdays
       announceLunchOrderMaster: '0 15 14 * * *' // 1-5 for weekdays
     }
-
-    let scheduledTasks = []
-
+    this.scheduledTasks = []
+  }
+  init () {
     for (let action in this.schedule) {
       console.log(this.schedule[action])
       const task = cron.schedule(this.schedule[action], () => { this.trigger(action) } )
-      scheduledTasks.push(task)
-    }
-
-    this.trigger = action => {
-      if (this.state.active === true) {
-        this.actions()[action]()
-      }
+      this.scheduledTasks.push(task)
     }
   }
-
+  trigger (action) {
+    if (this.state.active === true) {
+      this.actions()[action]()
+    }
+  }
   actions () {
     return {
       announceAttendees: () => {

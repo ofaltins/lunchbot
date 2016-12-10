@@ -1,29 +1,21 @@
 'use strict';
 
 const Bot = require('slackbots')
-const Actions = require('./actions')
-const Schedule = require('./schedule')
-const Events = require('events')
-
-class EventEmitter extends Events {}
-const eventEmitter = new EventEmitter()
-
-const ACTIONS = new Actions(eventEmitter)
-const SCHEDULE = new Schedule(eventEmitter)
 
 class Lunchbot extends Bot {
-  constructor (settings) {
+  constructor (settings, EVENTEMITTER, ACTIONS) {
     super (settings);
 
+    this.ACTIONS = ACTIONS
     this.settings = settings;
     this.settings.activeChannels = [];
     this.settings.bot_id = (process.env.NODE_ENV === 'production' ? 'production' : 'dev' )+ '' + Date.now()
     this.settings.active = true
     this.settings.attendees = []
 
-    eventEmitter.emit('setState', this.settings)
+    EVENTEMITTER.emit('setState', this.settings)
 
-    eventEmitter.on('say', (payload, origin) => {
+    EVENTEMITTER.on('say', (payload, origin) => {
       console.log('got event', payload, origin)
 
       if (origin === undefined || this._isChannelConversation(origin)) {
@@ -35,28 +27,24 @@ class Lunchbot extends Bot {
       }
     })
 
-    eventEmitter.on('setadmin', user => {
+    EVENTEMITTER.on('setadmin', user => {
       this.settings.admin = user
-      eventEmitter.emit('setState', this.settings)
+      EVENTEMITTER.emit('setState', this.settings)
     })
 
-    eventEmitter.on('activate', () => {
+    EVENTEMITTER.on('activate', () => {
       this.settings.active = true
-      eventEmitter.emit('setState', this.settings)
+      EVENTEMITTER.emit('setState', this.settings)
     })
 
-    eventEmitter.on('deactivate', () => {
+    EVENTEMITTER.on('deactivate', () => {
       this.settings.active = false
-      eventEmitter.emit('setState', this.settings)
+      EVENTEMITTER.emit('setState', this.settings)
     })
 
-    eventEmitter.on('addAttendee', attendee => {
+    EVENTEMITTER.on('addAttendee', attendee => {
       this.settings.attendees.push(attendee)
-      eventEmitter.emit('setState', this.settings)
-    })
-
-    eventEmitter.on('dryRunSchedule', () => {
-      SCHEDULE.actions()['dryRunSchedule']()
+      EVENTEMITTER.emit('setState', this.settings)
     })
   }
 
@@ -158,7 +146,7 @@ class Lunchbot extends Bot {
     console.log('command:' + command + ' arg: ' + argument)
 
     // if command matches a function name in the _actions method, run it and pass one argument
-    const action = ACTIONS.actions()[command];
+    const action = this.ACTIONS.actions()[command];
     if (action !== undefined) {
       if ((action.restricted === true && this._isFromAdmin(message)) || action.restricted !== true) {
         action.func(message, argument)
@@ -168,9 +156,6 @@ class Lunchbot extends Bot {
     } else {
       this._postMessageToChannel('Øyh! Det skjønte jeg ikke bæret av. Si noe jeg forstår da? For å se alt du kan spørre meg om, skriv lunchbot hjelp', message)
     }
-  }
-  _actions() {
-    return new Actions()
   }
 }
 
