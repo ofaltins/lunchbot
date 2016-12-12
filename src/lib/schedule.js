@@ -8,11 +8,11 @@ class Schedule {
     this.eventEmitter.on('setState', state => { this.state = state })
     this.eventEmitter.on('dryRunSchedule', () => { this.trigger('dryRunSchedule') })
     this.schedule = {
-      announceAttendees: '0 30 10 * * *', // 1-5 for weekdays
-      announceLunch: '0 30 11 * * *', // 1-5 for weekdays
-      announceSetTable: '0 0 11 * * *', // 1-5 for weekdays
-      announceLunchOrderAll: '0 10 12 * * *', // 1-5 for weekdays
-      announceLunchOrderMaster: '0 15 14 * * *' // 1-5 for weekdays
+      announceAttendees: '0 30 09 * * 1-5', // 1-5 for weekdays
+      announceLunch: '0 30 10 * * 1-5', // 1-5 for weekdays
+      announceSetTable: '0 0 10 * * 1-5', // 1-5 for weekdays
+      announceLunchOrderAll: '0 10 11 * * 1-5', // 1-5 for weekdays
+      announceLunchOrderMaster: '0 15 13 * * 1-5' // 1-5 for weekdays
     }
     this.scheduledTasks = []
   }
